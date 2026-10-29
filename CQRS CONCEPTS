@@ -88,3 +88,20 @@ The browser can allow the admin frontend to read responses from your API, provid
 But if an unrelated website tries to access the API from its browser, it won't be allowed to read the response through that CORS policy.
 
 Remember: CORS controls browser-based cross-origin access. It is not authentication or authorization; you still need proper authentication and API permissions to protect your backend.
+
+What does "LCLMastersCors" mean?
+Think of it like giving a name to a set of rules.
+- AddPolicy() → Creates a CORS policy.
+- "LCLMastersCors" → Gives that policy a name.
+- options => → Lets you define the rules for that policy.
+For example, you name your policy "LCLMastersCors" and configure which frontend can access your API.
+
+Later, you can use that name:
+app.UseCors("LCLMastersCors");
+
+
+Here, .NET understands: "Apply the CORS rules defined in the policy named LCLMastersCors."
+
+You could also name it "MyPolicy" or "AngularPolicy". The name is your choice, but you must use the same name when applying the policy.
+
+In one line: "LCLMastersCors" is just a label used to identify your CORS configuration; it is not a special .NET keyword.
