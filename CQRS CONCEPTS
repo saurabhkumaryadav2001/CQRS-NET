@@ -1,0 +1,90 @@
+1. What is CORS?
+CORS = Cross-Origin Resource Sharing
+
+In simple words, CORS is a security rule that controls which frontend applications are allowed to call your backend API from a browser.
+
+Imagine you have two applications:
+Angular Frontend
+
+http://localhost:4200
+
+User clicks the Login button
+
+API request
+
+.NET Backend API
+
+http://localhost:5000
+
+Processes the request and returns data
+
+
+Because the frontend and backend use different ports (4200 and 5000), they have different origins.
+
+The browser checks whether the backend allows the frontend's origin. CORS configuration tells the browser which origins are permitted to access the API.
+2. What happens without CORS?
+Suppose your Angular application calls your .NET API.
+- Angular sends a request to the API.
+- The API might process the request.
+- But if the browser doesn't receive the required CORS permission, it blocks Angular from accessing the response.
+- You see a CORS error in the browser console.
+Important: CORS is enforced by browsers. A request from Postman generally isn't blocked by browser CORS rules.
+3. How to configure CORS in .NET
+Here is an example similar to your code:
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("MyCorsPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200");
+        policy.AllowAnyHeader();
+        policy.AllowAnyMethod();
+    });
+});
+
+
+Let's understand each line.
+Code	Simple meaning
+AddCors()	Enables CORS configuration in the application.
+AddPolicy()	Creates a named set of CORS rules.
+"MyCorsPolicy"	The name of our policy.
+WithOrigins(...)	Allows requests from the specified frontend origin.
+AllowAnyHeader()	Allows any request header, such as Authorization or Content-Type.
+AllowAnyMethod()	Allows HTTP methods such as GET, POST, PUT and DELETE.
+
+You also need to apply the policy in your application's middleware pipeline:
+app.UseCors("MyCorsPolicy");
+
+
+This is usually placed after UseRouting() and before authorization middleware and endpoint mapping, depending on your application's setup.
+4. What does your original code mean?
+services.AddCors(o => o.AddPolicy(
+    "LCLMastersCors",
+    options =>
+    {
+        options.WithOrigins(GetOriginList());
+        options.AllowAnyHeader();
+        options.AllowAnyMethod();
+        options.AllowCredentials();
+    }
+));
+
+
+- LCLMastersCors: the name of the CORS policy.
+- GetOriginList(): a method that supplies the allowed frontend origins.
+- AllowAnyHeader(): accepts different request headers.
+- AllowAnyMethod(): permits different HTTP methods.
+- AllowCredentials(): permits credentials, such as cookies or HTTP authentication, in cross-origin requests when the browser and server are configured accordingly.
+Security note: When using AllowCredentials(), specify trusted origins explicitly. Do not combine it with allowing every origin (AllowAnyOrigin()).
+5. Real-life example
+Suppose your company has these applications:
+- https://admin.company.com — Admin frontend
+- https://api.company.com — .NET backend
+If you configure:
+policy.WithOrigins("https://admin.company.com");
+
+
+The browser can allow the admin frontend to read responses from your API, provided the other CORS requirements are met.
+
+But if an unrelated website tries to access the API from its browser, it won't be allowed to read the response through that CORS policy.
+
+Remember: CORS controls browser-based cross-origin access. It is not authentication or authorization; you still need proper authentication and API permissions to protect your backend.
